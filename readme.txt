@@ -31,7 +31,15 @@ Description and examples eXtra optsy see plugin page:
 3. Go to `Apperance->Widgets` add a widget in the sidebar and configure it.
 4. You can use short tags [wk_posts ...] and [wk_terms ...]  in the text post or page.
 
+== Screenshots ==
 
+1. Add a widget to the sidebar
+
+2. Categories tree
+
+3. Pages tree
+
+4. Use as a shortcod
 
 
 == Changelog ==
@@ -40,11 +48,3 @@ Description and examples eXtra optsy see plugin page:
  * Start Projects
 = 1.0.1 =
  * Fixed bug `division by zero`  in the calculation of the font size.
-
-
-
-
-
-
-
-
