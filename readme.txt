@@ -17,9 +17,11 @@ Two widgets and two shortcodes, alternative for standart widgets Categories and 
 1.  WK_terms works with categories, tags (post_tag) and other taxonomies. Initial data, we obtain the function get_terms(), all options this function - available for change.
 2.  WK_posts - working with posts, pages, and any other type of records. For data used WP_Query, a huge number of input parameters available to change.
 
-`Collapse` – hide inactive branches of a tree – can significantly reduce the list categories or pages, Javascript is not used - hide html code.
+Collapse - hide inactive branches of a tree - can significantly reduce the list categories or pages, Javascript is not used - hide html code.
+
 Plagin supported hierarchical structure, this has its own Walker.
-To construct the resulting html code You can used `micro-templates`.
+
+To construct the resulting html code You can used micro-templates.
 
 
 Description and examples eXtra optsy see plugin page:
