@@ -11,10 +11,11 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Three alternative to standard widget Categories, Recent Posts and Pages. These widgets can be used as short tags.
 == Description ==
 
-Three alternative to standard widget Categories, Recent Posts and Pages. These widgets can be used as short tags.
+Three alternative to standard widget Categories, Recent Posts and Pages. These widgets can be used as short tags:
+
 1.  WK_trem working with categories, post_tag or any taxonomies. Settings from function get_terms().
 2.  WK_posts works with posts, pages and any other type of records. Settings from class WP_Query.
-3.  WK_pages – working pages, posts, and any other type of records. The data received through the function get_pages(). Unlike WK_posts working with tree hierarchical data.
+3.  WK_pages working pages, posts, and any other type of records. The data received through the function get_pages(). Unlike WK_posts working with tree hierarchical data.
 
 Collapse - hide inactive branches of a tree - can significantly reduce the list categories or pages, Javascript is not used - hide html code.
 
@@ -27,7 +28,7 @@ Description and examples eXtra optsy see plugin page:
 
 [wk_terms](http://www.wp.od.ua/en/?page_id=333 "categories, tags and other taxonomic")  - categories, tags and other taxonomic
 
-[wk_posts] adn [wk_pages] (http://www.wp.od.ua/en/?page_id=366 "posts, page and  any type of records")  - posts, page
+[wk_posts adn wk_pages](http://www.wp.od.ua/en/?page_id=366 "posts, page and  any type of records")  - posts, page
 
 == Installation ==
 
@@ -37,7 +38,7 @@ Description and examples eXtra optsy see plugin page:
 4. You can use short tags [wk_posts ...] or [wk_terms ...] or [wk_pages ...] in the text post or page.
 
 == Frequently Asked Questions ==
-=Show child categories from the category My_Category id:34=
+= Show child categories from the category My_Category id:34 =
 `[wk_terms child_of=34]`
 
 = Show all categories and empty too =
