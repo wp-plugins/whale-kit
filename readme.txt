@@ -40,40 +40,40 @@ Description and examples eXtra optsy see plugin page:
 =Show child categories from the category My_Category id:34=
 `[wk_terms child_of=34]`
 
-=Show all categories and empty too=
+= Show all categories and empty too =
 `[wk_terms hide_empty=0]`
 
 = Exclude a category 32 and all childs =
 `[wk_terms exclude_tree=array(32)]`
 
-=Sort categories by count of records=
+= Sort categories by count of records =
 `[wk_terms orderby=count order=ASC]`
 for the widget:
 orderby=count&order=ASC
 
-= Ñollapse categories =
+= Collapse categories =
 `[wk_terms collapse=1 hierarchical=1]`
 The collapse of the inactive branches of the tree of categories.
 
-=Display tags and specify the number of records=
+= Display tags and specify the number of records =
 `[wk_terms taxonomy=post_tag show_count=1]`
 
-=Show category and set the font size depending on the number of entries in the category=
+= Show category and set the font size depending on the number of entries in the category =
 `[wk_terms show_count=1 size_of_count=1 smallest=8 largest=22 unit=px]`
 
-=show 5 records out of category id:56, exclude category id:23=
+= Show 5 records out of category id:56, exclude category id:23 =
 `[wk_posts cat=56,-23 posts_per_page=5]`
 for the widget:
 `cat=56,-23&posts_per_page=5`
 
 
-=Show entries with thumbnail=
+= Show entries with thumbnail =
 `[wk_posts meta_key=_thumbnail_id show_thumbnail=60?60 /]`
 for the widget:
 `meta_key=_thumbnail_id&show_thumbnail=60?60`
 *none_thumbnai - plug, if the record does not have a thumbnail, then specify the id attachment
 
-=Custom Field Query=
+= Custom Field Query =
 for the widget write all in one line:
 `meta_key=color&meta_value=blue&meta_compare=<=&posts_per_page=5`
 or per line of name = value pairs:
@@ -83,7 +83,7 @@ meta_value=blue
 meta_compare=<=
 posts_per_page=5
 `
-=Multiple Custom Field Handling=
+= Multiple Custom Field Handling =
 `
 [wk_posts
 tax_query='array(
@@ -105,11 +105,11 @@ for the widget write all in one line !newline is not allowed here:
 `tax_query=array(  "relation"=>"AND",  array(  "taxonomy" => "category",  "field" => "id",  "terms" => array(16)  ),  array(  "taxonomy" => "post_tag",   "field" => "slug",   "terms" => array("test_wk") ) )`
 
 
-=Show child pages to 567 pages=
+= Show child pages to 567 pages =
 `[wk_pages child_of=567]`
 
 
-=Collapse and sorting pages=
+= Collapse and sorting pages =
 `[wk_pages collapse=1 sort_column=menu_order sort_order=ASC]`
 for the widget:
 `
