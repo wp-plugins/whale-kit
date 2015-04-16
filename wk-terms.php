@@ -1,6 +1,7 @@
 <?
 class WK_terms extends WK_tree{
 /*
+description of the parameters is available at http://www.wp.od.ua/en/?page_id=333
 основной метод вывода    &apos; &quot;      &lt;    &gt;  #171792 &amp;
 подготовка установка значений по умолчанию
 collapse - скрывать неактивные ветки дерева, позволяет существенно сократить список
@@ -47,7 +48,7 @@ font_size, class, hint, style, t_count, childs )
 
 taxonomy=category&show_count=1&hierarchical=1&size_of_count=1&smallest=9&largest=20&hint=в рубрике $name - $count записей&hint_single=одна запись в рубрике $name&hint_fiw=$count записи в рубрик $name
 
-description of the parameters is available at http://www.wp.od.ua/en/?p=76
+
 
 */
   public function w($args = null) {

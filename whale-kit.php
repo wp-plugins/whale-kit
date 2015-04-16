@@ -1,15 +1,15 @@
 <?php
 /*
 Plugin Name: Whale-Kit
-Plugin URI: http://www.wp.od.ua/en/?p=33
-Description: Two advanced widgets and two shortcodes. 1) WK_trem working with categories, post_tag or any taxonomies. Settings from function get_terms(). 2) WK_posts works with posts, pages and any other type of records. Settings from class WP_Query. Advanced Settings to display data and rules for constructing micro-patterns, see <a href="http://www.wp.od.ua/en/?p=33">page plugin</a>. Russian page plugin <a href="http://wp.od.ua/?p=1261">Whale-Kit</a>
+Plugin URI: http://www.wp.od.ua/en/?page_id=242
+Description: Three advanced widgets and three shortcodes. 1) WK_trem working with categories, post_tag or any taxonomies. Settings from function get_terms(). 2) WK_posts works with posts, pages and any other type of records. Settings from class WP_Query. 3) WK_pages – working pages, posts. The data received through the function get_pages(). Unlike WK_posts working with tree hierarchical data. Advanced Settings to display data and rules for constructing micro-patterns, see <a href="http://www.wp.od.ua/en/?page_id=242">page plugin</a>. Russian page plugin <a href="http://wp.od.ua/?p=1261">Whale-Kit</a>
 Author: Yuriy Stepanov (stur)
-Version: 1.0.1
+Version: 1.1.0
 Author URI: http://wp.od.ua/
 */
 define("WHALE_KIT_ENABLE", 1);
-remove_filter( 'the_content', 'wpautop' );
-add_filter( 'the_content', 'wpautop' , 12);
+remove_filter( 'the_content', 'do_shortcode' );
+add_filter( 'the_content', 'do_shortcode' ,1);
 
 require_once ( dirname(__FILE__).'/wk-terms.php' );
 require_once ( dirname(__FILE__).'/wk-posts.php' );
@@ -27,7 +27,9 @@ class WK_Terms_Widget extends WP_Widget {
     function widget($all_wd_options, $instance) {
         $title = apply_filters('widget_title', $instance['title']);
         $wk_terms = new WK_terms;
-        $out = $wk_terms->w($instance['args']);
+        $args = str_replace("\r\n", '&', $instance['args']);
+        $args = str_replace('&&', '&', $args);
+        $out = $wk_terms->w($args);
         extract($all_wd_options);
         if ($out) {
             $title = apply_filters('widget_title', $instance['title']);
@@ -41,7 +43,7 @@ class WK_Terms_Widget extends WP_Widget {
     function update($new_instance, $old_instance) {
         $instance = array();
 		$instance['title'] = ( ! empty( $new_instance['title'] ) ) ? strip_tags( $new_instance['title'] ) : '';
-        $instance['args']  = $new_instance['args'];
+        $instance['args']  = trim($new_instance['args']);
 		return $instance;
     }
 
@@ -58,7 +60,7 @@ class WK_Terms_Widget extends WP_Widget {
 		</p>
         <p>
 		<label for="<?php echo $this->get_field_id( 'args' ); ?>"><?php _e( 'Function arguments:' ); ?></label>
-		<input class="widefat" id="<?php echo $this->get_field_id( 'args' ); ?>" name="<?php echo $this->get_field_name( 'args' ); ?>" type="text" value="<?php echo esc_attr( $args ); ?>">
+		<textarea class="widefat" id="<?php echo $this->get_field_id( 'args' ); ?>" name="<?php echo $this->get_field_name( 'args' ); ?>" rows="10"><?php echo esc_attr( $args ); ?></textarea>
 		</p>
         <br />
         Help function arguments:  basic parameters <a href="http://codex.wordpress.org/Function_Reference/get_terms">get_terms()</a>,  additional settings <a href="http://www.wp.od.ua/en/?p=76">WK_terms</a><br>
@@ -85,7 +87,11 @@ function wk_posts($atts) {
 }
 add_shortcode('wk_posts', 'wk_posts');
 
-
+function wk_pages($atts) {
+    $wk_pages = new WK_pages;
+    return $wk_pages->w($atts);
+}
+add_shortcode('wk_pages', 'wk_pages');
 
 class WK_Post_Widget extends WP_Widget{
 
@@ -100,8 +106,9 @@ class WK_Post_Widget extends WP_Widget{
     function widget($all_wd_options, $instance) {
         $title = apply_filters('widget_title', $instance['title']);
         $wk_post = new WK_posts;
-        $out = $wk_post->w($instance['args']);
-
+        $args = str_replace("\r\n", '&', $instance['args']);
+        $args = str_replace('&&', '&', $args);
+        $out = $wk_post->w($args);
         extract($all_wd_options);
         if ($out) {
             $title = apply_filters('widget_title', $instance['title']);
@@ -115,14 +122,14 @@ class WK_Post_Widget extends WP_Widget{
     function update($new_instance, $old_instance) {
         $instance = array();
 		$instance['title'] = ( ! empty( $new_instance['title'] ) ) ? strip_tags( $new_instance['title'] ) : '';
-        $instance['args']  = $new_instance['args'];
+        $instance['args']  = trim($new_instance['args']);
 		return $instance;
     }
 
     function form($instance) {
         extract($instance);
         if(!$title) $title =  __( 'New title');
-        if(!$args) $args = 'post_type=page&show_count=1&posts_per_page=10';
+        if(!$args) $args = 'post_type=post&show_count=1';
 
 ?>
        <div style="width: 640px; margin-left:-300px; margin-top: 60px; z-index:10; position: absolute;  padding:2em;   background-color: #FFFFFF; border: solid 1px #6A6A6A">
@@ -132,7 +139,7 @@ class WK_Post_Widget extends WP_Widget{
 		</p>
         <p>
 		<label for="<?php echo $this->get_field_id( 'args' ); ?>"><?php _e( 'Function arguments:' ); ?></label>
-		<input class="widefat" id="<?php echo $this->get_field_id( 'args' ); ?>" name="<?php echo $this->get_field_name( 'args' ); ?>" type="text" value="<?php echo esc_attr( $args ); ?>">
+		<textarea class="widefat" rows="10" id="<?php echo $this->get_field_id( 'args' ); ?>" name="<?php echo $this->get_field_name( 'args' ); ?>" ><?php echo esc_attr( $args ); ?></textarea>
 		</p>
         Help function arguments:  basic parameters <a href="http://codex.wordpress.org/Class_Reference/WP_Query">WP_Query</a>,  additional settings <a href="http://www.wp.od.ua/en/?p=80">WK_posts</a><br>
         Russian help:  <a href="http://wp.od.ua/?p=1272">WK_posts</a>
@@ -143,6 +150,62 @@ class WK_Post_Widget extends WP_Widget{
 add_action('widgets_init', create_function('', 'return register_widget("WK_Post_Widget");'));
 
 
+
+class WK_Pages_Widget extends WP_Widget{
+
+	function __construct() {
+		parent::__construct(
+			'WK_Pages_Widget', // Base ID
+			__('WK Pages Widget', 'whalekit'), // Name
+			array( 'description' => __( 'WK Pages Widget', 'whalekit' ), ) // Args
+		);
+	}
+
+    function widget($all_wd_options, $instance) {
+        $title = apply_filters('widget_title', $instance['title']);
+        $wk_pages = new WK_pages;
+        $args = str_replace("\r\n", '&', $instance['args']);
+        $args = str_replace('&&', '&', $args);
+        $out = $wk_pages->w($args);
+        extract($all_wd_options);
+        if ($out) {
+            $title = apply_filters('widget_title', $instance['title']);
+            if ($title)
+                $title = "$before_title$title$after_title";
+            $out = "\n$before_widget\n$title\n$out\n$after_widget\n";
+        }
+        echo $out;
+    }
+
+    function update($new_instance, $old_instance) {
+        $instance = array();
+		$instance['title'] = ( ! empty( $new_instance['title'] ) ) ? strip_tags( $new_instance['title'] ) : '';
+        $instance['args']  = trim($new_instance['args']);
+		return $instance;
+    }
+
+    function form($instance) {
+        extract($instance);
+        if(!$title) $title =  __( 'New title');
+        if(!$args) $args = 'post_type=post&show_count=1';
+
+?>
+       <div style="width: 640px; margin-left:-300px; margin-top: 60px; z-index:10; position: absolute;  padding:2em;   background-color: #FFFFFF; border: solid 1px #6A6A6A">
+        <p>
+		<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+		<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>">
+		</p>
+        <p>
+		<label for="<?php echo $this->get_field_id( 'args' ); ?>"><?php _e( 'Function arguments:' ); ?></label>
+		<textarea class="widefat" rows="10" id="<?php echo $this->get_field_id( 'args' ); ?>" name="<?php echo $this->get_field_name( 'args' ); ?>" ><?php echo esc_attr( $args ); ?></textarea>
+		</p>
+        Help function arguments:  basic parameters <a href="https://codex.wordpress.org/Function_Reference/get_pages">get_pages( );</a>,  additional settings <a href="http://www.wp.od.ua/en/?page_id=242">Whale-Kit</a><br>
+        <a href="http://wp.od.ua/?p=1272">Wahle-Kit ru</a>
+      </div>
+<?php
+      }
+}
+add_action('widgets_init', create_function('', 'return register_widget("WK_Pages_Widget");'));
 
 
 
@@ -157,6 +220,7 @@ run eval () and create an array of strings
 */
 function eval_array(& $atts){
     foreach ($atts as $key => $value) {
+
         if( strpos ($value, 'array') === 0  ){
             eval('$atts[$key] = '.$value.';');
         }

@@ -1,5 +1,7 @@
 <?php
 /*
+http://www.wp.od.ua/en/?page_id=366
+
 используем микро-шаблоны
 для вывода элементов       &apos; &quot;      &lt;    &gt;
 
@@ -14,6 +16,8 @@ css_prefix - используется при формировании css кла
 truncate_title - обрезать заголовок до размера
 truncate_content - обрезать основной текст
 show_author - вычислить автора, в шаблонах станет доступна переменная $author
+show_thumbnail - показывать миниатюру записи, в шаблонах станет доступна переменая картинка $img
+none_thumbnai - заглушка, если запись не имеет миниатюру,  тут указать id загрузки
 
 ***МИКРО ШАБЛОНЫ***
 hint_none - - текст титла страницы у которой нет коментов
@@ -32,29 +36,14 @@ a_tmpl  - шаблон вывода автора пример:  'автор: <a 
 пример шоткода: выводит посты таблицей
 [wk_posts post_type="post" lv_tmpl='<h2>Таблица</h2><table>$elements</table> пример таблицы' show_author=1 el_tmpl='<tr><td>$id<td><a href="$href"> $title</a><td>$a_tmpl<td>$date</tr>' date_format='d-m-Y H ч.'/]
 
-description of the parameters is available at http://www.wp.od.ua/en/?p=80
 */
 class WK_posts extends WK_tree{
+
 public function w($args=null){
-    $defaults = array(
-    'authors' => '',  'post_type' => 'post', 'posts_per_page'=>10,
-    'hierarchical' => 0,
-    'smallest' => 8, 'largest' => 22, 'unit' => 'pt',
-    'date_format' => get_option('date_format'),
-    'lv_tag' => 'ul', 'el_tag' => 'li', 'count_tag' => 'sup',  'indent'=>"\t",
-    'lv_tmpl'=>'\n$ind<$lv_tag  class="$class">\n$elements\n$ind</$lv_tag>',
-    'с_tmpl'=>'<$count_tag>$count</$count_tag>',
-    'el_tmpl'=>'<$el_tag class="$class" title="$hint"><a href="$href" style="$style">$title</a>$с_tmpl$cnt_tmpl$childs</$el_tag>',
-    );
+/*   установка опций  installation options */
+    $r = $this->set_args($args);
 
-    $r = wp_parse_args($args, $defaults);
-    $this->eval_array($r);
-
-    if($r['collapse'])
-        $r['hierarchical'] = 1;
-    if(!$r['css_prefix'])
-        $r['css_prefix'] = $r['post_type'];
-
+/* получение данных   data acquisition  */
     $query = new WP_Query($r);
     if(!sizeof($query->posts))
         return '';
@@ -67,20 +56,8 @@ public function w($args=null){
 Set the current element
 also have the opportunity to establish weaving element in an array of arguments
 at this stage we just need to mark an item field 'current'
-*/  global $wp_query;
-    if (is_single() || is_page() || is_attachment() || $wp_query->is_posts_page )
-        $r['current']  = $wp_query->get_queried_object_id();
-
-    foreach ($posts as $key => $value) {
-      if ($value->ID == $r['current'])
-        $posts[$key]->current = 1;
-        if($value->comment_count)
-            $counts[] =  $value->comment_count;
-        else
-           $counts[] =  0;
-
-    }
-
+*/
+   $this->set_current($posts, $r);
 
 /*
 если установлен size_of_count расчитаем размер шрифта в зависимости от кол-ва
@@ -92,15 +69,7 @@ record that contains each taxonomy
 font size is stored in the property -> font_size
 */
     if($r['size_of_count']) {
-        $min_count =  min($counts);
-        $spread_count = max($counts) - $min_count;
-        $spread_font =$r['largest'] - $r['smallest'];
-        if($spread_count>0){
-            $k = $spread_font/$spread_count;
-            foreach ($posts as $key => $value) {
-                $posts[$key]->font_size = round($r['smallest'] + (($value->comment_count -$min_count)*$k), 2);
-            }
-        }
+        $this->cal_font_size($posts, $r);
 
     }
 
@@ -119,10 +88,82 @@ font size is stored in the property -> font_size
 }
 
 
+function set_args($args){
+    $defaults = array(
+    'authors' => '',  'post_type' => 'post', 'posts_per_page'=>-1,
+    'hierarchical' => 0,
+    'smallest' => 8, 'largest' => 22, 'unit' => 'pt',
+    'date_format' => get_option('date_format'),
+    'lv_tag' => 'ul', 'el_tag' => 'li', 'count_tag' => 'sup',  'indent'=>"\t",
+    'lv_tmpl'=>'\n$ind<$lv_tag  class="$class">\n$elements\n$ind</$lv_tag>',
+    'с_tmpl'=>'<$count_tag>$count</$count_tag>',
+    'el_tmpl'=>'<$el_tag class="$class" title="$hint">$img<a href="$href" style="$style">$title</a>$с_tmpl$cnt_tmpl$childs</$el_tag>',
+    );
 
 
- function element($p, $depth, & $r, $num){
-        $arr['id'] = $id = $p->ID;
+    $r = wp_parse_args($args, $defaults);
+
+    if(is_singular() ){
+        if( $r['post_parent'] == '$this' )
+            $r['post_parent'] = get_the_ID();
+
+        if($r['post_parent__in'])
+            $r['post_parent__in'] = str_replace('$this', get_the_ID(), $r['post_parent__in']);
+
+        if($r['post__in'])
+            $r['post__in'] = str_replace('$this', get_the_ID(), $r['post__in']);
+
+        if($r['post__not_in'])
+            $r['post__not_in'] = str_replace('$this', get_the_ID(), $r['post__not_in']);
+    }
+
+    if( $r['show_thumbnail'] ){
+        if( $r['show_thumbnail'] == 'thumbnail' OR $r['show_thumbnail'] == 'medium'
+            OR $r['show_thumbnail'] == 'large' OR $r['show_thumbnail'] == 'full' )
+            $r['img_size'] = $r['show_thumbnail'];
+        elseif( preg_match('~^(\d+)[x,X](\d+)~',$r['show_thumbnail'], $match) ) {
+            $r['img_size'] = array($match[1],$match[2]);
+        }
+    }
+    $this->eval_array($r);
+    if($r['collapse'])
+        $r['hierarchical'] = 1;
+    if(!$r['css_prefix'])
+        $r['css_prefix'] = $r['post_type'];
+    return $r;
+}
+
+function set_current(& $posts, & $r){
+    global $wp_query;
+    if (is_single() || is_page() || is_attachment() || $wp_query->is_posts_page )
+        $r['current']  = $wp_query->get_queried_object_id();
+
+    foreach ($posts as $key => $value) {
+      if ($value->ID == $r['current'])
+        $posts[$key]->current = 1;
+        if($value->comment_count)
+            $counts[] =  $value->comment_count;
+        else
+           $counts[] =  0;
+    }
+    $r['counts'] = $counts;
+}
+
+
+function cal_font_size(& $posts, & $r){
+        $min_count =  min($r['counts']);
+        $spread_count = max($r['counts']) - $min_count;
+        $spread_font =$r['largest'] - $r['smallest'];
+        if($spread_count>0){
+            $k = $spread_font/$spread_count;
+            foreach ($posts as $key => $value) {
+                $posts[$key]->font_size = round($r['smallest'] + (($value->comment_count -$min_count)*$k), 2);
+            }
+        }
+}
+
+function element($p, $depth, & $r, $num){
+    $arr['id'] = $id = $p->ID;
     $arr['css_prefix'] = $pr = $r['css_prefix'];
     $arr['count_tag'] = $r['count_tag'];
     $arr['font_size'] = $p->font_size;
@@ -159,6 +200,22 @@ font size is stored in the property -> font_size
         $arr['author'] = $userdata->display_name;
         $arr['a_url'] = get_author_posts_url($p->post_author);
         $arr['a_tmpl'] = $this->str_replace_var( $arr,  $r['a_tmpl'] );
+    }
+
+    if( $r['show_thumbnail'] ){
+        if(has_post_thumbnail( $id )){
+            if($r['img_size'])
+                $arr['img'] = get_the_post_thumbnail( $id,  $r['img_size'] );
+            else
+                 $arr['img'] = get_the_post_thumbnail( $id );
+        }elseif($r['none_thumbnai']){
+            if($r['img_size'])
+                $arr['img'] = wp_get_attachment_image( $r['none_thumbnai'],  $r['img_size'] );
+            else
+                 $arr['img'] = wp_get_attachment_image( $r['none_thumbnai'] );
+        }
+    }else{
+            $arr['img'] = '';
     }
 
 //  hint
@@ -199,10 +256,13 @@ font size is stored in the property -> font_size
     else
         $arr['с_tmpl'] =  '';
 
+
+
     if ($p->childs)
         $arr['childs'] = $this->level($p->childs, $depth + 1, $r);
     else
         $arr['childs'] = '';
+
 
     $out = $this->str_replace_var($arr, $r['el_tmpl']);
     return $out;
@@ -210,31 +270,103 @@ font size is stored in the property -> font_size
 
 } // end class WK_posts
 
+
+
+/*
+отличается от WK_постс источником данных - данные получаем с помощью функции  get_pages
+differs from the WK post to a data source - data is obtained using the  get_pages()
+*/
+class WK_pages extends WK_posts{
+public function w($args=null){
+/*   установка опций  installation options */
+    $r = $this->set_args($args);
+
+/* получение данных   data acquisition  */
+    $posts = get_pages($r);
+    if(!sizeof($posts))
+        return '';
+
+/*
+установка текущего элемента
+также есть возможность устанавливать ткущий элемент через массив аргументов
+на этом этапе нам просто нужно отметить элемент полем 'current'
+Set the current element
+also have the opportunity to establish weaving element in an array of arguments
+at this stage we just need to mark an item field 'current'
+*/
+   $this->set_current($posts, $r);
+
+/*
+если установлен size_of_count расчитаем размер шрифта в зависимости от кол-ва
+записей которое содержит каждая таксономия
+размер шрифта запоминаем в свойстве ->font_size
+
+if installed size_of_count will calculate the font size depending on the number of
+record that contains each taxonomy
+font size is stored in the property -> font_size
+*/
+    if($r['size_of_count']) {
+        $this->cal_font_size($posts, $r);
+
+    }
+
 /*
 
-    [ID] => 147
-    [post_author] => 1
-    [post_date] => 2014-04-13 02:29:53
-    [post_date_gmt] => 2014-04-12 22:29:53
-    [post_content] => жил я как-то в общаге и среди всех остальных соседей были (м)ама
-    [post_title] => жил я как-то в общаге и среди всех остальных соседей были
-    [post_excerpt] =>
-    [post_status] => publish
-    [comment_status] => open
-    [ping_status] => open
-    [post_password] =>
-    [post_name] => %d0%b6%d0%b8%d0%bb-%d1%8f-%d0%ba%d0%b0%d0%ba-%d1%82%d0%be-%d0%b2-%d0%be%d0%b1%d1%89%d0%b0%d0%b3%d0%b5-%d0%b8-%d1%81%d1%80%d0%b5%d0%b4%d0%b8-%d0%b2%d1%81%d0%b5%d1%85-%d0%be%d1%81%d1%82%d0%b0%d0%bb
-    [to_ping] =>
-    [pinged] =>
-    [post_modified] => 2014-04-13 02:29:53
-    [post_modified_gmt] => 2014-04-12 22:29:53
-    [post_content_filtered] =>
-    [post_parent] => 127
-    [guid] => http://wp38/?page_id=147
-    [menu_order] => 0
-    [post_type] => page
-    [post_mime_type] =>
-    [comment_count] => 0
-    [filter] => raw
+ */
+    if ($r['hierarchical']){
+        $posts = $this->tree( $posts , $r);
+        //echo '<pre>'; print_r($posts); echo '</pre>';
+        $out = $this->level( $posts, 0, $r);
+    } else {
+       $out = $this->level( $posts, 0, $r);
+    }
 
-*/
+    return  $out;
+}
+
+function set_args($args){
+    $defaults = array(
+    'authors' => '',  'post_type' => 'page',
+    'hierarchical' => 1,
+    'smallest' => 8, 'largest' => 22, 'unit' => 'pt',
+    'date_format' => get_option('date_format'),
+    'lv_tag' => 'ul', 'el_tag' => 'li', 'count_tag' => 'sup',  'indent'=>"\t",
+    'lv_tmpl'=>'\n$ind<$lv_tag  class="$class">\n$elements\n$ind</$lv_tag>',
+    'с_tmpl'=>'<$count_tag>$count</$count_tag>',
+    'el_tmpl'=>'<$el_tag class="$class" title="$hint">$img<a href="$href" style="$style">$title</a>$с_tmpl$cnt_tmpl$childs</$el_tag>',
+    );
+
+
+    $r = wp_parse_args($args, $defaults);
+
+    if(is_singular() ){
+        if( $r['post_parent'] == '$this' )
+            $r['post_parent'] = get_the_ID();
+
+        if($r['post_parent__in'])
+            $r['post_parent__in'] = str_replace('$this', get_the_ID(), $r['post_parent__in']);
+
+        if($r['post__in'])
+            $r['post__in'] = str_replace('$this', get_the_ID(), $r['post__in']);
+
+        if($r['post__not_in'])
+            $r['post__not_in'] = str_replace('$this', get_the_ID(), $r['post__not_in']);
+    }
+
+    if( $r['show_thumbnail'] ){
+        if( $r['show_thumbnail'] == 'thumbnail' OR $r['show_thumbnail'] == 'medium'
+            OR $r['show_thumbnail'] == 'large' OR $r['show_thumbnail'] == 'full' )
+            $r['img_size'] = $r['show_thumbnail'];
+        elseif( preg_match('~^(\d+)[x,X](\d+)~',$r['show_thumbnail'], $match) ) {
+            $r['img_size'] = array($match[1],$match[2]);
+        }
+    }
+    $this->eval_array($r);
+    if($r['collapse'])
+        $r['hierarchical'] = 1;
+    if(!$r['css_prefix'])
+        $r['css_prefix'] = $r['post_type'];
+    return $r;
+}
+
+}
