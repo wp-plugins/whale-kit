@@ -36,6 +36,31 @@ Description and examples eXtra optsy see plugin page:
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Go to `Apperance->Widgets` add a widget in the sidebar and configure it.
 4. You can use short tags [wk_posts ...] or [wk_terms ...] or [wk_pages ...] in the text post or page.
+5. You may need to format the SSC, give an example to collapse lists:
+`
+.widget_wk_post_widget  ul,
+.widget_wk_pages_widget ul{ border-left: dotted 1px  #DEDEDE; }
+.widget_wk_post_widget  ul.childs,
+.widget_wk_pages_widget ul.childs{ border-left: dotted 1px  #DEDEDE; margin-left: 0.5em;}
+li.page_item>a:before{ content:'-' }
+li.page_has_children>a:before { content:'+ ' }
+li.current_page_ancestor > a:before { content:'- ' }
+li.current_page > a:after { content:' <' }
+li.current_page>a {text-decoration: underline}
+
+
+.widget_wk_terms_widget ul{ border-left: dotted 1px  #DEDEDE; padding-left: .2em }
+.widget_wk_terms_widget  ul.childs {     margin-left: 0.5em; }
+li.cat_item>a:before{ content:' ' }
+li.cat_has_children>a:before { content:'+' }
+li.current_cat > a:before { content:'-' }
+li.current_cat > a {text-decoration: underline}
+li.current_cat_ancestor  > a:before { content:'-' }
+.widget_wk_terms_widget li sup { font-size: 9px; margin: -5px 0 0 5px; vertical-align:top !important; }
+.widget_wk_terms_widget li a{ vertical-align:bottom !important; margin-top: 5px;}
+`
+add this code to a file style of the current theme or to include other way
+
 
 == Frequently Asked Questions ==
 = Show child categories from the category My_Category id:34 =
